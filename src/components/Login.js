@@ -2,28 +2,73 @@ import React, { useRef, useState } from "react";
 import Header from "./Header";
 import Background from "../../src/assets/Background.jpg";
 import { checkValidation } from "../utils/validate";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword  } from "firebase/auth";
+import { auth } from "../utils/firebase";
 
 const Login = () => {
   const [isSignInForm, setSignInForm] = useState(true);
-  const [errorMessage, setErrorMessage]= useState(null)
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  const email = useRef(null);
-  const password = useRef(null);
-  const name= useRef(null)
+  const email = useRef("");
+  const password = useRef("");
+  const name = useRef("");
+
+
+  const handleButtonClick = () => {
+    console.log("clicked");
+    //validate data
+    const message = checkValidation(
+      email.current.value,
+      password.current.value,
+      name.current.value
+    );
+    setErrorMessage(message);
+    console.log(message);
+
+    if (message) return;
+    //sign in sign up
+
+    //sign up
+    if (!isSignInForm) {
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+          console.log(user);
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode+": "+errorMessage);
+          // ..
+        });
+    } 
+    else {
+      signInWithEmailAndPassword( auth,
+        email.current.value,
+        password.current.value)
+        .then((userCredential) => {
+          // Signed in 
+          const user = userCredential.user;
+          console.log(user);
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + ": " + errorMessage);
+        });
   
-
+    }
+  };
   const toggleSignInForm = () => {
     setSignInForm(!isSignInForm);
   };
-
-  const handleButtonClick =() =>{
-    //validate data
-   const message= checkValidation(email.current.value, password.current.value, name.current.value)
-   setErrorMessage(message)
- 
-  
-
-  }
 
   return (
     <div>
@@ -32,7 +77,8 @@ const Login = () => {
         <img src={Background} alt="background" />
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()}
+      <form
+        onSubmit={(e) => e.preventDefault()}
         action=""
         className="w-3/12 absolute p-12 bg-black my-36 mx-auto  right-0 left-0 text-white rounded-lg bg-opacity-80"
       >
@@ -41,7 +87,7 @@ const Login = () => {
         </h1>
         {!isSignInForm && (
           <input
-          ref={name}
+            ref={name}
             type="text"
             name=""
             id=""
@@ -50,7 +96,7 @@ const Login = () => {
           />
         )}
         <input
-        ref={email}
+          ref={email}
           type="email"
           name=""
           id=""
@@ -66,7 +112,10 @@ const Login = () => {
           className="p-4 my-4 w-full bg-gray-600"
         />
         <p className="text-red-500 font-bold text-lg">{errorMessage}</p>
-        <button className="p-4 my-6  bg-red-700 w-full rounded-lg" onClick={handleButtonClick}>
+        <button
+          className="p-4 my-6  bg-red-700 w-full rounded-lg"
+          onClick={handleButtonClick}
+        >
           {isSignInForm ? "Sign In" : "Sign Up"}
         </button>
         <p className="py-4">
